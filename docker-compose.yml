@@ -1,0 +1,45 @@
+version: '3.7'
+
+services:
+  db:
+    image: postgres:10.14
+    container_name: ${PROJECT_NAME}-db
+    restart: always
+    environment:
+      PGDATA: /data
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+    env_file:
+      - .env
+      - .env.dev
+    volumes:
+      - postrgres_data:/data
+      - .:/tmp
+    ports:
+      - "0.0.0.0:${DB_PORT}:${DB_PORT}"
+    command: -p ${DB_PORT}
+
+  api:
+    image: ${PROJECT_NAME}-api
+    build: 
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: ${PROJECT_NAME}-api
+    tty: true
+    environment:
+      NODE_ENV: development
+      ENVIRONMENT: development
+      FORCE_COLOR: 1
+    restart: always
+    depends_on:
+      - db
+    env_file:
+      - .env
+      - .env.dev
+    volumes:
+      - ./api:/api
+      - /api/node_modules
+    ports:
+      - "0.0.0.0:${API_PORT}:${API_PORT}"
+volumes:
+  postrgres_data:
